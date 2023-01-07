@@ -1,0 +1,71 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "HTTPRequestsActor.h"
+
+// Sets default values
+AHTTPRequestsActor::AHTTPRequestsActor()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+
+// Called when the game starts or when spawned
+void AHTTPRequestsActor::BeginPlay()
+{
+	Super::BeginPlay();
+	AHTTPRequestsActor::Read = true;
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::NONE;
+}
+
+// Called every frame
+void AHTTPRequestsActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+void AHTTPRequestsActor::Register(FString username, FString password, FString email)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("username", username);
+	RequestObj->SetStringField("password", password);
+	RequestObj->SetStringField("email", email);
+
+	AHTTPRequestsActor::POST(Request, RequestObj);
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::REGISTER;
+}
+
+void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj)
+{
+	FString RequestBody;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
+	FJsonSerializer::Serialize(RequestObj, Writer);
+
+	Request->OnProcessRequestComplete().BindUObject(this, &AHTTPRequestsActor::OnResponseReceived);
+	Request->SetURL("http://ec2-54-67-85-210.us-west-1.compute.amazonaws.com/register.php");
+	Request->SetVerb("POST");
+	Request->SetHeader("Content-Type", "application/json");
+	Request->SetContentAsString(RequestBody);
+	Request->ProcessRequest();
+}
+
+void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool ConnectedSuccessfully)
+{
+	TSharedPtr<FJsonObject> ResponseObj;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
+	FJsonSerializer::Deserialize(Reader, ResponseObj);
+
+	FString Contents = *Response->GetContentAsString();
+
+	if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::REGISTER) {
+		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("REGISTER");
+	}
+	AHTTPRequestsActor::Read = false;
+}
