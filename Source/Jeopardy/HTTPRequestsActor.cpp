@@ -109,7 +109,12 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Logout");
 	}
 	else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::PING) {
-		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Ping");
+		if (ResponseObj != NULL && ResponseObj->HasField("Ping")) {
+			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Ping");
+		}
+		else {
+			AHTTPRequestsActor::ResponseContents = "Disconnected";
+		}
 	}
 	AHTTPRequestsActor::Read = false;
 }
