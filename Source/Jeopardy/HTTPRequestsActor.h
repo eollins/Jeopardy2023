@@ -28,7 +28,7 @@ public:
 	bool Read;
 
 	enum Actions {
-		NONE, REGISTER, LOGIN, LOGOUT
+		NONE, REGISTER, LOGIN, LOGOUT, PING
 	};
 
 	int CurrentAction;
@@ -39,6 +39,8 @@ public:
 	void Login(FString Username, FString Password);
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
 	void LogOut(FString Token);
+	UFUNCTION(BlueprintCallable, Category = "HTTP")
+	void Ping(FString Token);
 
 protected:
 	// Called when the game starts or when spawned

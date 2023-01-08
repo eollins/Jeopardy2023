@@ -65,6 +65,17 @@ void AHTTPRequestsActor::LogOut(FString Token)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::LOGOUT;
 }
 
+void AHTTPRequestsActor::Ping(FString Token)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("token", Token);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "ping.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::PING;
+}
+
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
 {
 	FString RequestBody;
@@ -96,6 +107,9 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 	}
 	else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGOUT) {
 		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Logout");
+	}
+	else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::PING) {
+		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Ping");
 	}
 	AHTTPRequestsActor::Read = false;
 }
