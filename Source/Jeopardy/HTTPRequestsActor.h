@@ -18,6 +18,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = HTTP);
 	FString ResponseContents;
+	UPROPERTY(BlueprintReadWrite, Category = HTTP);
+	FString ResponseContents2;
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "HTTP")
 	void SuccessfulRegister();
@@ -26,13 +28,17 @@ public:
 	bool Read;
 
 	enum Actions {
-		NONE, REGISTER, LOGIN
+		NONE, REGISTER, LOGIN, LOGOUT
 	};
 
 	int CurrentAction;
 
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
 	void Register(FString Username, FString Password, FString Email);
+	UFUNCTION(BlueprintCallable, Category = "HTTP")
+	void Login(FString Username, FString Password);
+	UFUNCTION(BlueprintCallable, Category = "HTTP")
+	void LogOut(FString Token);
 
 protected:
 	// Called when the game starts or when spawned
@@ -43,6 +49,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	void POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj);
+	void POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL);
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool ConnectedSuccessfully);
 };

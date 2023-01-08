@@ -38,18 +38,41 @@ void AHTTPRequestsActor::Register(FString username, FString password, FString em
 	RequestObj->SetStringField("password", password);
 	RequestObj->SetStringField("email", email);
 
-	AHTTPRequestsActor::POST(Request, RequestObj);
+	AHTTPRequestsActor::POST(Request, RequestObj, "register.php");
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::REGISTER;
 }
 
-void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj)
+void AHTTPRequestsActor::Login(FString Username, FString Password)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("username", Username);
+	RequestObj->SetStringField("password", Password);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "login.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::LOGIN;
+}
+
+void AHTTPRequestsActor::LogOut(FString Token)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("token", Token);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "logout.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::LOGOUT;
+}
+
+void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
 {
 	FString RequestBody;
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBody);
 	FJsonSerializer::Serialize(RequestObj, Writer);
 
 	Request->OnProcessRequestComplete().BindUObject(this, &AHTTPRequestsActor::OnResponseReceived);
-	Request->SetURL("http://ec2-54-67-85-210.us-west-1.compute.amazonaws.com/register.php");
+	Request->SetURL("http://ec2-54-67-85-210.us-west-1.compute.amazonaws.com/" + URL);
 	Request->SetVerb("POST");
 	Request->SetHeader("Content-Type", "application/json");
 	Request->SetContentAsString(RequestBody);
@@ -66,6 +89,13 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 
 	if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::REGISTER) {
 		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("REGISTER");
+	}
+	else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGIN) {
+		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Login");
+		AHTTPRequestsActor::ResponseContents2 = ResponseObj->GetStringField("Token");
+	}
+	else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGOUT) {
+		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Logout");
 	}
 	AHTTPRequestsActor::Read = false;
 }
