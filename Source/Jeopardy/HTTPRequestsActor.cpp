@@ -76,6 +76,40 @@ void AHTTPRequestsActor::Ping(FString Token)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::PING;
 }
 
+void AHTTPRequestsActor::RequestHost(FString Token)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("HostToken", Token);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "hostgame.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::HOSTREQUEST;
+}
+
+void AHTTPRequestsActor::EndHost(FString Token)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("HostToken", Token);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "endgame.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::HOSTEND;
+}
+
+void AHTTPRequestsActor::RequestJoin(FString GameCode, FString Token)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("Token", Token);
+	RequestObj->SetStringField("GameCode", GameCode);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "joingame.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::JOINREQUEST;
+}
+
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
 {
 	FString RequestBody;
@@ -98,23 +132,34 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 
 	FString Contents = *Response->GetContentAsString();
 
-	if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::REGISTER) {
-		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("REGISTER");
-	}
-	else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGIN) {
-		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Login");
-		AHTTPRequestsActor::ResponseContents2 = ResponseObj->GetStringField("Token");
-	}
-	else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGOUT) {
-		AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Logout");
-	}
-	else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::PING) {
-		if (ResponseObj != NULL && ResponseObj->HasField("Ping")) {
+	if (ResponseObj != NULL) {
+		if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::REGISTER) {
+			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("REGISTER");
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGIN) {
+			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Login");
+			AHTTPRequestsActor::ResponseContents2 = ResponseObj->GetStringField("Token");
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGOUT) {
+			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Logout");
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::PING) {
 			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Ping");
 		}
-		else {
-			AHTTPRequestsActor::ResponseContents = "Disconnected";
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::HOSTREQUEST) {
+			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Host");
+			AHTTPRequestsActor::ResponseContents2 = ResponseObj->GetStringField("GameCode");
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::HOSTEND) {
+			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Host");
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::JOINREQUEST) {
+			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Join");
 		}
 	}
+	else {
+		AHTTPRequestsActor::ResponseContents = "Disconnected";
+	}
+
 	AHTTPRequestsActor::Read = false;
 }
