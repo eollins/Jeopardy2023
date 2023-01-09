@@ -17,9 +17,7 @@ public:
 	AHTTPRequestsActor();
 
 	UPROPERTY(BlueprintReadWrite, Category = HTTP);
-	FString ResponseContents;
-	UPROPERTY(BlueprintReadWrite, Category = HTTP);
-	FString ResponseContents2;
+	TArray<FString> ResponseContents;
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "HTTP")
 	void SuccessfulRegister();

@@ -131,34 +131,35 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 	FJsonSerializer::Deserialize(Reader, ResponseObj);
 
 	FString Contents = *Response->GetContentAsString();
+	AHTTPRequestsActor::ResponseContents.Empty();
 
 	if (ResponseObj != NULL) {
 		if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::REGISTER) {
-			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("REGISTER");
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("REGISTER"));
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGIN) {
-			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Login");
-			AHTTPRequestsActor::ResponseContents2 = ResponseObj->GetStringField("Token");
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Login"));
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Token"));
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::LOGOUT) {
-			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Logout");
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Logout"));
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::PING) {
-			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Ping");
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Ping"));
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::HOSTREQUEST) {
-			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Host");
-			AHTTPRequestsActor::ResponseContents2 = ResponseObj->GetStringField("GameCode");
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Host"));
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("GameCode"));
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::HOSTEND) {
-			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Host");
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Host"));
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::JOINREQUEST) {
-			AHTTPRequestsActor::ResponseContents = ResponseObj->GetStringField("Join");
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Join"));
 		}
 	}
 	else {
-		AHTTPRequestsActor::ResponseContents = "Disconnected";
+		AHTTPRequestsActor::ResponseContents.Emplace(TEXT("Disconnected"));
 	}
 
 	AHTTPRequestsActor::Read = false;
