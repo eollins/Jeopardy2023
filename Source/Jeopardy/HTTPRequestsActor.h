@@ -26,7 +26,7 @@ public:
 	bool Read;
 
 	enum Actions {
-		NONE, REGISTER, LOGIN, LOGOUT, PING, HOSTREQUEST, HOSTEND, JOINREQUEST
+		NONE, REGISTER, LOGIN, LOGOUT, PING, HOSTREQUEST, HOSTEND, JOINREQUEST, FETCHPLAYERREQUESTS
 	};
 
 	int CurrentAction;
@@ -44,7 +44,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
 	void EndHost(FString Token);
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
-	void RequestJoin(FString GameCode, FString Token);
+	void RequestJoin(FString GameCode, FString Token, FString DisplayName);
+	UFUNCTION(BlueprintCallable, Category = "HTTP")
+	void FetchPlayerRequests(FString GameCode);
 
 protected:
 	// Called when the game starts or when spawned

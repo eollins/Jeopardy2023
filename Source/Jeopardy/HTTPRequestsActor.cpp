@@ -98,16 +98,28 @@ void AHTTPRequestsActor::EndHost(FString Token)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::HOSTEND;
 }
 
-void AHTTPRequestsActor::RequestJoin(FString GameCode, FString Token)
+void AHTTPRequestsActor::RequestJoin(FString GameCode, FString Token, FString DisplayName)
 {
 	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
 
 	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
 	RequestObj->SetStringField("Token", Token);
 	RequestObj->SetStringField("GameCode", GameCode);
+	RequestObj->SetStringField("DisplayName", DisplayName);
 
 	AHTTPRequestsActor::POST(Request, RequestObj, "joingame.php");
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::JOINREQUEST;
+}
+
+void AHTTPRequestsActor::FetchPlayerRequests(FString GameCode)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("GameCode", GameCode);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "fetchplayerrequests.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::FETCHPLAYERREQUESTS;
 }
 
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
@@ -156,6 +168,14 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::JOINREQUEST) {
 			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Join"));
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::FETCHPLAYERREQUESTS) {
+			TArray<TSharedPtr<FJsonValue>> PlayerArray = ResponseObj->GetArrayField("Fetch");
+			for (int i = 0; i < PlayerArray.Num(); i++) {
+				TSharedPtr<FJsonObject> obj = PlayerArray[i]->AsObject();
+				AHTTPRequestsActor::ResponseContents.Emplace(obj->GetStringField("DisplayName"));
+				AHTTPRequestsActor::ResponseContents.Emplace(obj->GetStringField("RequestID"));
+			}
 		}
 	}
 	else {
