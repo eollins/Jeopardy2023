@@ -111,6 +111,18 @@ void AHTTPRequestsActor::RequestJoin(FString GameCode, FString Token, FString Di
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::JOINREQUEST;
 }
 
+void AHTTPRequestsActor::RequestCancel(FString GameCode, FString Token)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("Token", Token);
+	RequestObj->SetStringField("GameCode", GameCode);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "cancelrequest.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::CANCELREQUEST;
+}
+
 void AHTTPRequestsActor::FetchPlayerRequests(FString GameCode)
 {
 	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
@@ -176,6 +188,9 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 				AHTTPRequestsActor::ResponseContents.Emplace(obj->GetStringField("DisplayName"));
 				AHTTPRequestsActor::ResponseContents.Emplace(obj->GetStringField("RequestID"));
 			}
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::CANCELREQUEST) {
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Cancel"));
 		}
 	}
 	else {
