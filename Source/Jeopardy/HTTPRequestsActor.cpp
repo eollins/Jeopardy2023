@@ -134,6 +134,30 @@ void AHTTPRequestsActor::FetchPlayerRequests(FString GameCode)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::FETCHPLAYERREQUESTS;
 }
 
+void AHTTPRequestsActor::VerifyConnections(FString IdentifierType, TArray<FString> Players)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("player_id", IdentifierType);
+
+	FString PlayerArray = "";
+	for (int i = 0; i < Players.Num(); i++) {
+		if (Players[i] == "")
+			continue;
+		
+		FString Item = "";
+		Item += Players[i];
+		Item.AppendChar(',');
+		PlayerArray += Item;
+	}
+	PlayerArray = PlayerArray.TrimChar(',');
+	RequestObj->SetStringField("players", PlayerArray);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "verifyconnections.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::VERIFYCONNECTIONS;
+}
+
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
 {
 	FString RequestBody;
@@ -191,6 +215,12 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::CANCELREQUEST) {
 			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Cancel"));
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::VERIFYCONNECTIONS) {
+			for (auto currObject = ResponseObj->Values.CreateConstIterator(); currObject; ++currObject) {
+				FString value = currObject->Value->AsString();
+				AHTTPRequestsActor::ResponseContents.Emplace(value);
+			}
 		}
 	}
 	else {
