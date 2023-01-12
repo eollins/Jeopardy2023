@@ -182,6 +182,42 @@ void AHTTPRequestsActor::RemovePlayer(FString Player, FString GameCode)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::REMOVEPLAYER;
 }
 
+void AHTTPRequestsActor::RequestGameBoard(FString GameCode)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("GameCode", GameCode);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "requestboard.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::REQUESTBOARD;
+}
+
+void AHTTPRequestsActor::GetActiveBoard(FString BoardID)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("BoardID", BoardID);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "getactiveboard.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::GETACTIVEBOARD;
+}
+
+void AHTTPRequestsActor::SetActiveBoard(int BoardID, int Category, int Value, bool DisplayCategory)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetNumberField("BoardID", BoardID);
+	RequestObj->SetNumberField("Category", Category);
+	RequestObj->SetNumberField("Value", Value);
+	RequestObj->SetBoolField("DisplayCategory", DisplayCategory);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "setactiveboard.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::SETACTIVEBOARD;
+}
+
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
 {
 	FString RequestBody;
@@ -248,6 +284,19 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::GETPOSITION) {
 			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Position"));
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::REQUESTBOARD) {
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Board"));
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::GETACTIVEBOARD) {
+			if (ResponseObj->GetStringField("Active") == "Yes") {
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Clue"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Category"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Answer"));
+			}
+			else {
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Nope"));
+			}
 		}
 	}
 	else {
