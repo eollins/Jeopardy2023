@@ -204,7 +204,7 @@ void AHTTPRequestsActor::GetActiveBoard(FString BoardID)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::GETACTIVEBOARD;
 }
 
-void AHTTPRequestsActor::SetActiveBoard(int BoardID, int Category, int Value, bool DisplayCategory)
+void AHTTPRequestsActor::SetActiveBoard(int BoardID, int Category, int Value, bool DisplayCategory, bool Clear)
 {
 	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
 
@@ -213,9 +213,22 @@ void AHTTPRequestsActor::SetActiveBoard(int BoardID, int Category, int Value, bo
 	RequestObj->SetNumberField("Category", Category);
 	RequestObj->SetNumberField("Value", Value);
 	RequestObj->SetBoolField("DisplayCategory", DisplayCategory);
+	RequestObj->SetBoolField("Clear", Clear);
 
 	AHTTPRequestsActor::POST(Request, RequestObj, "setactiveboard.php");
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::SETACTIVEBOARD;
+}
+
+void AHTTPRequestsActor::SetGameStage(FString GameCode, int Stage)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("GameCode", GameCode);
+	RequestObj->SetNumberField("Stage", Stage);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "setgamestage.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::SETGAMESTAGE;
 }
 
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
@@ -297,6 +310,9 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 			else {
 				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Nope"));
 			}
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::SETGAMESTAGE) {
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Stage"));
 		}
 	}
 	else {
