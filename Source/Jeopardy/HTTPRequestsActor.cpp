@@ -158,6 +158,30 @@ void AHTTPRequestsActor::VerifyConnections(FString IdentifierType, TArray<FStrin
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::VERIFYCONNECTIONS;
 }
 
+void AHTTPRequestsActor::GetPlayerPosition(FString DisplayName, FString GameCode)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("DisplayName", DisplayName);
+	RequestObj->SetStringField("GameCode", GameCode);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "getplayerposition.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::GETPOSITION;
+}
+
+void AHTTPRequestsActor::RemovePlayer(FString Player, FString GameCode)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("Player", Player);
+	RequestObj->SetStringField("GameCode", GameCode);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "removeplayer.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::REMOVEPLAYER;
+}
+
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
 {
 	FString RequestBody;
@@ -221,6 +245,9 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 				FString value = currObject->Value->AsString();
 				AHTTPRequestsActor::ResponseContents.Emplace(value);
 			}
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::GETPOSITION) {
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Position"));
 		}
 	}
 	else {
