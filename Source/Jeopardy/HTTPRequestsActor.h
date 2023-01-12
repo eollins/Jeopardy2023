@@ -26,7 +26,8 @@ public:
 	bool Read;
 
 	enum Actions {
-		NONE, REGISTER, LOGIN, LOGOUT, PING, HOSTREQUEST, HOSTEND, JOINREQUEST, CANCELREQUEST, FETCHPLAYERREQUESTS, VERIFYCONNECTIONS, GETPOSITION, REMOVEPLAYER, REQUESTBOARD, GETACTIVEBOARD, SETACTIVEBOARD, SETGAMESTAGE
+		NONE, REGISTER, LOGIN, LOGOUT, PING, HOSTREQUEST, HOSTEND, JOINREQUEST, CANCELREQUEST, FETCHPLAYERREQUESTS, VERIFYCONNECTIONS, 
+		GETPOSITION, REMOVEPLAYER, REQUESTBOARD, GETACTIVEBOARD, SETACTIVEBOARD, SETGAMESTAGE, SETACTIVEPLAYER
 	};
 
 	int CurrentAction;
@@ -58,11 +59,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
 	void RequestGameBoard(FString GameCode);
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
-	void GetActiveBoard(FString BoardID);
+	void GetActiveBoard(FString GameCode);
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
 	void SetActiveBoard(int BoardID, int Category, int Value, bool DisplayCategory, bool Clear);
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
 	void SetGameStage(FString GameCode, int Stage);
+	UFUNCTION(BlueprintCallable, Category = "HTTP")
+	void SetActivePlayer(FString GameCode, int Active);
 
 protected:
 	// Called when the game starts or when spawned

@@ -193,12 +193,12 @@ void AHTTPRequestsActor::RequestGameBoard(FString GameCode)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::REQUESTBOARD;
 }
 
-void AHTTPRequestsActor::GetActiveBoard(FString BoardID)
+void AHTTPRequestsActor::GetActiveBoard(FString GameCode)
 {
 	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
 
 	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
-	RequestObj->SetStringField("BoardID", BoardID);
+	RequestObj->SetStringField("GameCode", GameCode);
 
 	AHTTPRequestsActor::POST(Request, RequestObj, "getactiveboard.php");
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::GETACTIVEBOARD;
@@ -229,6 +229,18 @@ void AHTTPRequestsActor::SetGameStage(FString GameCode, int Stage)
 
 	AHTTPRequestsActor::POST(Request, RequestObj, "setgamestage.php");
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::SETGAMESTAGE;
+}
+
+void AHTTPRequestsActor::SetActivePlayer(FString GameCode, int Active)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("GameCode", GameCode);
+	RequestObj->SetNumberField("Active", Active);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "setactiveplayer.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::SETACTIVEPLAYER;
 }
 
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
@@ -306,9 +318,10 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Clue"));
 				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Category"));
 				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Answer"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Player"));
 			}
 			else {
-				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Nope"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Player"));
 			}
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::SETGAMESTAGE) {
