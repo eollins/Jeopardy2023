@@ -322,6 +322,13 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 			}
 			else {
 				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Player"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("GameState"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("C1"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("C2"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("C3"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("C4"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("C5"));
+				AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("C6"));
 			}
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::SETGAMESTAGE) {
