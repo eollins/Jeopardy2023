@@ -27,7 +27,7 @@ public:
 
 	enum Actions {
 		NONE, REGISTER, LOGIN, LOGOUT, PING, HOSTREQUEST, HOSTEND, JOINREQUEST, CANCELREQUEST, FETCHPLAYERREQUESTS, VERIFYCONNECTIONS, 
-		GETPOSITION, REMOVEPLAYER, REQUESTBOARD, GETACTIVEBOARD, SETACTIVEBOARD, SETGAMESTAGE, SETACTIVEPLAYER
+		GETPOSITION, REMOVEPLAYER, REQUESTBOARD, GETACTIVEBOARD, SETACTIVEBOARD, SETGAMESTAGE, SETACTIVEPLAYER, GETBUZZERSTATE
 	};
 
 	int CurrentAction;
@@ -66,6 +66,8 @@ public:
 	void SetGameStage(FString GameCode, int Stage);
 	UFUNCTION(BlueprintCallable, Category = "HTTP")
 	void SetActivePlayer(FString GameCode, int Active);
+	UFUNCTION(BlueprintCallable, Category = "HTTP")
+	void GetBuzzerState(FString GameCode, FString DisplayName);
 
 protected:
 	// Called when the game starts or when spawned

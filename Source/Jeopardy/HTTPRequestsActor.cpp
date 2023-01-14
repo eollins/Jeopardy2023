@@ -243,6 +243,18 @@ void AHTTPRequestsActor::SetActivePlayer(FString GameCode, int Active)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::SETACTIVEPLAYER;
 }
 
+void AHTTPRequestsActor::GetBuzzerState(FString GameCode, FString DisplayName)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("GameCode", GameCode);
+	RequestObj->SetStringField("DisplayName", DisplayName);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "getbuzzerstate.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::GETBUZZERSTATE;
+}
+
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
 {
 	FString RequestBody;
@@ -333,6 +345,9 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::SETGAMESTAGE) {
 			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Stage"));
+		}
+		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::GETBUZZERSTATE) {
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Buzzer"));
 		}
 	}
 	else {
