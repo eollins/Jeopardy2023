@@ -204,7 +204,7 @@ void AHTTPRequestsActor::GetActiveBoard(FString GameCode)
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::GETACTIVEBOARD;
 }
 
-void AHTTPRequestsActor::SetActiveBoard(int BoardID, int Category, int Value, bool DisplayCategory, bool Clear)
+void AHTTPRequestsActor::SetActiveBoard(int BoardID, int Category, int Value, FString GameCode, bool DisplayCategory, bool Clear)
 {
 	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
 
@@ -212,6 +212,7 @@ void AHTTPRequestsActor::SetActiveBoard(int BoardID, int Category, int Value, bo
 	RequestObj->SetNumberField("BoardID", BoardID);
 	RequestObj->SetNumberField("Category", Category);
 	RequestObj->SetNumberField("Value", Value);
+	RequestObj->SetStringField("GameCode", GameCode);
 	RequestObj->SetBoolField("DisplayCategory", DisplayCategory);
 	RequestObj->SetBoolField("Clear", Clear);
 
@@ -253,6 +254,19 @@ void AHTTPRequestsActor::GetBuzzerState(FString GameCode, FString DisplayName)
 
 	AHTTPRequestsActor::POST(Request, RequestObj, "getbuzzerstate.php");
 	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::GETBUZZERSTATE;
+}
+
+void AHTTPRequestsActor::Buzz(FString GameCode, int RequestID, int AveragePing)
+{
+	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+
+	TSharedRef<FJsonObject> RequestObj = MakeShared<FJsonObject>();
+	RequestObj->SetStringField("GameCode", GameCode);
+	RequestObj->SetNumberField("RequestID", RequestID);
+	RequestObj->SetNumberField("AveragePing", AveragePing);
+
+	AHTTPRequestsActor::POST(Request, RequestObj, "buzz.php");
+	AHTTPRequestsActor::CurrentAction = AHTTPRequestsActor::Actions::BUZZ;
 }
 
 void AHTTPRequestsActor::POST(FHttpRequestRef Request, TSharedRef<FJsonObject> RequestObj, FString URL)
@@ -301,6 +315,7 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::JOINREQUEST) {
 			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("Join"));
+			AHTTPRequestsActor::ResponseContents.Emplace(ResponseObj->GetStringField("ID"));
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::FETCHPLAYERREQUESTS) {
 			TArray<TSharedPtr<FJsonValue>> PlayerArray = ResponseObj->GetArrayField("Fetch");
@@ -308,6 +323,7 @@ void AHTTPRequestsActor::OnResponseReceived(FHttpRequestPtr Request, FHttpRespon
 				TSharedPtr<FJsonObject> obj = PlayerArray[i]->AsObject();
 				AHTTPRequestsActor::ResponseContents.Emplace(obj->GetStringField("DisplayName"));
 				AHTTPRequestsActor::ResponseContents.Emplace(obj->GetStringField("RequestID"));
+				AHTTPRequestsActor::ResponseContents.Emplace(obj->GetStringField("Score"));
 			}
 		}
 		else if (AHTTPRequestsActor::CurrentAction == AHTTPRequestsActor::Actions::CANCELREQUEST) {
